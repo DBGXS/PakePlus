@@ -1,32 +1,3724 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煤矿供电整定计算系统 - 符合煤矿安全规程</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --sidebar-width: 250px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            font-size: 2rem;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+        
+        .logo span {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .standard-reference {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 12px;
+            margin: 12px 0;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            gap: 15px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-height: 800px;
+            overflow-y: auto;
+            position: sticky;
+            top: 15px;
+        }
+        
+        .sidebar h3 {
+            margin-bottom: 12px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .menu-item {
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .menu-item i {
+            margin-right: 8px;
+            width: 18px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .menu-item:hover {
+            background-color: #f0f7ff;
+            color: var(--secondary);
+        }
+        
+        .menu-item.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .content-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            min-height: 800px;
+            overflow-y: auto;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button i {
+            margin-right: 6px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .result-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .result-card h3 {
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .result-item {
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        
+        .result-item strong {
+            color: var(--dark);
+        }
+        
+        .calculation-steps {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .step {
+            margin-bottom: 8px;
+            padding: 6px;
+            background-color: white;
+            border-radius: 4px;
+        }
+        
+        .sensitivity-check {
+            margin-top: 12px;
+            padding: 8px;
+            background-color: #ffeaa7;
+            border-radius: 4px;
+            border-left: 4px solid #fdcb6e;
+        }
+        
+        .sensitivity-check.pass {
+            background-color: #d1f7c4;
+            border-left-color: #2ecc71;
+        }
+        
+        .sensitivity-check.fail {
+            background-color: #ffd8d8;
+            border-left-color: #e74c3c;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .export-section {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid var(--success);
+        }
+        
+        .system-status {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .status-card {
+            flex: 1;
+            min-width: 180px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .status-card i {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--secondary);
+        }
+        
+        .status-card h4 {
+            margin-bottom: 5px;
+            color: var(--dark);
+            font-size: 1rem;
+        }
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+        .chart-container {
+            margin-top: 15px;
+            height: 250px;
+            position: relative;
+        }
+
+        .history-section {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .history-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            background-color: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .history-item button {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+
+        .input-error {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        /* 文档管理界面样式 */
+        .documents-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .document-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .document-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .document-card h4 {
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .document-card p {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .document-actions button {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* 移动端优化 */
+        .mobile-menu-btn {
+            display: none;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 80%;
+                max-width: 300px;
+                z-index: 999;
+                overflow-y: auto;
+            }
+            
+            .sidebar.active {
+                display: block;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 998;
+            }
+            
+            .overlay.active {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                margin-bottom: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .system-status {
+                flex-direction: column;
+            }
+            
+            .status-card {
+                min-width: 100%;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons button {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .document-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .document-actions button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .logo span {
+                font-size: 0.8rem;
+            }
+            
+            .content-area {
+                padding: 15px;
+            }
+            
+            .result-card, .calculation-steps, .export-section, .history-section, .documents-section {
+                padding: 10px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-industry"></i>
+                    <div>
+                        <h1>煤矿供电整定计算系统</h1>
+                        <span>依据《煤矿井下供电的三大保护细则》和《煤矿供电设计与继电保护整定计算示例》</span>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i> 注册电气工程师
+                </div>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+        </header>
+        
+        <div class="standard-reference">
+            <strong>参考标准：</strong> 
+            中华人民共和国煤炭工业部《煤矿井下供电的三大保护细则（合订本）》、
+            中国矿业大学出版社《煤矿供电设计与继电保护整定计算示例》
+        </div>
+        
+        <button class="mobile-menu-btn" id="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="overlay" id="overlay"></div>
+        
+        <div class="main-content">
+            <div class="sidebar" id="sidebar">
+                <h3>计算模块</h3>
+                <div class="menu-item active" data-tab="overview">
+                    <i class="fas fa-home"></i> 系统概览
+                </div>
+                <div class="menu-item" data-tab="documents">
+                    <i class="fas fa-file-alt"></i> 文档管理
+                </div>
+                <div class="menu-item" data-tab="high-voltage">
+                    <i class="fas fa-bolt"></i> 高爆开关整定
+                </div>
+                <div class="menu-item" data-tab="feeder">
+                    <i class="fas fa-plug"></i> 馈电开关整定
+                </div>
+                <div class="menu-item" data-tab="starter">
+                    <i class="fas fa-play-circle"></i> 启动器整定
+                </div>
+                <div class="menu-item" data-tab="motor">
+                    <i class="fas fa-cog"></i> 电动机整定
+                </div>
+                <div class="menu-item" data-tab="transformer">
+                    <i class="fas fa-burn"></i> 变压器整定
+                </div>
+                <div class="menu-item" data-tab="cable">
+                    <i class="fas fa-stream"></i> 电缆选型计算
+                </div>
+                <div class="menu-item" data-tab="protection">
+                    <i class="fas fa-shield-alt"></i> 综保整定计算
+                </div>
+                <div class="menu-item" data-tab="short-circuit">
+                    <i class="fas fa-exclamation-triangle"></i> 短路电流计算
+                </div>
+                
+                <h3 style="margin-top: 30px;">系统分析</h3>
+                <div class="menu-item" data-tab="sensitivity">
+                    <i class="fas fa-check-circle"></i> 灵敏度校验
+                </div>
+                <div class="menu-item" data-tab="coordination">
+                    <i class="fas fa-sitemap"></i> 保护配合分析
+                </div>
             </div>
-        </main>
-    </body>
+            
+            <div class="content-area">
+                <!-- 系统概览 -->
+                <div id="overview" class="tab-content active">
+                    <h2>煤矿供电整定计算系统</h2>
+                    <p>本系统依据《煤矿井下供电的三大保护细则（合订本）》和《煤矿供电设计与继电保护整定计算示例》开发，用于煤矿供电系统的整定计算和保护配置。</p>
+                    
+                    <div class="system-status">
+                        <div class="status-card">
+                            <i class="fas fa-calculator"></i>
+                            <h4>已完成计算</h4>
+                            <p id="completed-calculations">0 项</p>
+                            <div class="progress-bar">
+                                <div class="progress" id="completed-progress"></div>
+                            </div>
+                        </div>
+                        <div class="status-card">
+                            <i class="fas fa-check-circle"></i>
+                            <h4>校验通过</h4>
+                            <p id="passed-checks">0 项</p>
+                            <div class="progress-bar">
+                                <div class="progress" id="passed-progress"></div>
+                            </div>
+                        </div>
+                        <div class="status-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4>需要调整</h4>
+                            <p id="need-adjustments">0 项</p>
+                            <div class="progress-bar">
+                                <div class="progress" id="adjustments-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="standard-reference">
+                        <h4>三大保护原则：</h4>
+                        <ul>
+                            <li><strong>过电流保护</strong>：防止电气设备因过负荷或短路而损坏</li>
+                            <li><strong>漏电保护</strong>：防止人身触电和漏电火花引发瓦斯爆炸</li>
+                            <li><strong>保护接地</strong>：防止设备外壳带电造成人身触电事故</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>系统功能</h3>
+                        <div class="result-item">
+                            <span>设备整定计算</span>
+                            <strong>高爆开关、馈电开关、启动器等</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>保护配置</span>
+                            <strong>过流、速断、接地保护</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>系统分析</span>
+                            <strong>灵敏度校验、保护配合</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>符合标准</span>
+                            <strong>煤矿安全规程、三大保护细则</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="overview-chart"></canvas>
+                    </div>
+                    
+                    <div class="history-section">
+                        <h3>最近计算记录</h3>
+                        <div id="calculation-history">
+                            <!-- 历史记录将通过JavaScript动态添加 -->
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-success" id="export-all-results">
+                            <i class="fas fa-file-export"></i> 导出全部计算结果
+                        </button>
+                        <button class="btn-warning" id="reset-all">
+                            <i class="fas fa-redo"></i> 重置所有计算
+                        </button>
+                        <button class="btn-danger" id="clear-history">
+                            <i class="fas fa-trash"></i> 清除历史记录
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 文档管理 -->
+                <div id="documents" class="tab-content">
+                    <h2>文档管理</h2>
+                    <p>管理您的计算文档，支持Word和Excel格式的导出和预览。</p>
+                    
+                    <div class="documents-section">
+                        <h3>我的文档</h3>
+                        <div class="action-buttons">
+                            <button class="btn-success" id="create-new-doc">
+                                <i class="fas fa-plus"></i> 新建文档
+                            </button>
+                            <button class="btn-warning" id="import-document">
+                                <i class="fas fa-file-import"></i> 导入文档
+                            </button>
+                        </div>
+                        
+                        <div class="documents-grid" id="documents-grid">
+                            <!-- 文档卡片将通过JavaScript动态添加 -->
+                        </div>
+                    </div>
+                    
+                    <div class="documents-section">
+                        <h3>模板文档</h3>
+                        <div class="documents-grid" id="templates-grid">
+                            <div class="document-card" data-type="template" data-name="高爆开关整定计算报告">
+                                <i class="fas fa-file-word document-icon"></i>
+                                <h4>高爆开关整定计算报告</h4>
+                                <p>Word模板</p>
+                                <div class="document-actions">
+                                    <button class="btn-success"><i class="fas fa-eye"></i> 预览</button>
+                                    <button class="btn-warning"><i class="fas fa-download"></i> 下载</button>
+                                </div>
+                            </div>
+                            <div class="document-card" data-type="template" data-name="电缆选型计算表">
+                                <i class="fas fa-file-excel document-icon"></i>
+                                <h4>电缆选型计算表</h4>
+                                <p>Excel模板</p>
+                                <div class="document-actions">
+                                    <button class="btn-success"><i class="fas fa-eye"></i> 预览</button>
+                                    <button class="btn-warning"><i class="fas fa-download"></i> 下载</button>
+                                </div>
+                            </div>
+                            <div class="document-card" data-type="template" data-name="短路电流计算报告">
+                                <i class="fas fa-file-word document-icon"></i>
+                                <h4>短路电流计算报告</h4>
+                                <p>Word模板</p>
+                                <div class="document-actions">
+                                    <button class="btn-success"><i class="fas fa-eye"></i> 预览</button>
+                                    <button class="btn-warning"><i class="fas fa-download"></i> 下载</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 高爆开关整定 -->
+                <div id="high-voltage" class="tab-content">
+                    <h2>高爆开关整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算高爆开关的过电流保护和速断保护整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        过电流保护按躲过最大负荷电流整定，速断保护按躲过最大短路电流整定。
+                        可靠系数取1.2-1.5，返回系数取0.85。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="hv-rated-current">额定电流 I<sub>N</sub> (A)</label>
+                            <input type="number" id="hv-rated-current" step="0.1" placeholder="例如: 630">
+                            <div class="error-message" id="hv-rated-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="hv-max-load">最大负荷电流 I<sub>Lmax</sub> (A)</label>
+                            <input type="number" id="hv-max-load" step="0.1" placeholder="例如: 450">
+                            <div class="error-message" id="hv-max-load-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="hv-short-circuit">最大短路电流 I<sub>kmax</sub> (A)</label>
+                            <input type="number" id="hv-short-circuit" step="0.1" placeholder="例如: 8500">
+                            <div class="error-message" id="hv-short-circuit-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="hv-min-short-circuit">最小短路电流 I<sub>kmin</sub> (A)</label>
+                            <input type="number" id="hv-min-short-circuit" step="0.1" placeholder="例如: 3200">
+                            <div class="error-message" id="hv-min-short-circuit-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="hv-reliability-factor">可靠系数 K<sub>rel</sub></label>
+                            <select id="hv-reliability-factor">
+                                <option value="1.2">1.2 (一般情况)</option>
+                                <option value="1.3">1.3 (重要设备)</option>
+                                <option value="1.5">1.5 (特别重要设备)</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="hv-return-factor">返回系数 K<sub>re</sub></label>
+                            <input type="number" id="hv-return-factor" step="0.01" value="0.85" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-hv"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-hv-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-hv-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-hv"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="hv-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>过电流保护整定值 I<sub>op</sub></span>
+                            <strong id="hv-overcurrent-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>速断保护整定值 I<sub>inst</sub></span>
+                            <strong id="hv-instantaneous-result">0 A</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="hv-sensitivity-result">
+                            <h4>灵敏度校验</h4>
+                            <p id="hv-sensitivity-text">校验结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="hv-step1">过电流保护：I<sub>op</sub> = K<sub>rel</sub> × I<sub>Lmax</sub> / K<sub>re</sub></div>
+                            <div class="step" id="hv-step2">速断保护：I<sub>inst</sub> = K<sub>rel</sub> × I<sub>kmax</sub></div>
+                            <div class="step" id="hv-step3">灵敏度校验：K<sub>sen</sub> = I<sub>kmin</sub> / I<sub>op</sub> ≥ 1.5</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="hv-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 馈电开关整定 -->
+                <div id="feeder" class="tab-content">
+                    <h2>馈电开关整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算馈电开关的过载保护和短路保护整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        馈电开关过载保护按额定电流整定，短路保护按躲过最大启动电流和满足灵敏度要求整定。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="fd-rated-current">额定电流 I<sub>N</sub> (A)</label>
+                            <input type="number" id="fd-rated-current" step="0.1" placeholder="例如: 400">
+                            <div class="error-message" id="fd-rated-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="fd-max-start">最大启动电流 I<sub>stmax</sub> (A)</label>
+                            <input type="number" id="fd-max-start" step="0.1" placeholder="例如: 1200">
+                            <div class="error-message" id="fd-max-start-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="fd-short-circuit-remote">最远点短路电流 I<sub>kmin</sub> (A)</label>
+                            <input type="number" id="fd-short-circuit-remote" step="0.1" placeholder="例如: 1500">
+                            <div class="error-message" id="fd-short-circuit-remote-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="fd-short-circuit-near">最近点短路电流 I<sub>kmax</sub> (A)</label>
+                            <input type="number" id="fd-short-circuit-near" step="0.1" placeholder="例如: 4500">
+                            <div class="error-message" id="fd-short-circuit-near-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="fd-overload-factor">过载系数 K<sub>ol</sub></label>
+                            <select id="fd-overload-factor">
+                                <option value="1.05">1.05 (一般负荷)</option>
+                                <option value="1.1">1.1 (重负荷)</option>
+                                <option value="1.2">1.2 (冲击负荷)</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="fd-reliability-factor">可靠系数 K<sub>rel</sub></label>
+                            <select id="fd-reliability-factor">
+                                <option value="1.2">1.2</option>
+                                <option value="1.3">1.3</option>
+                                <option value="1.5">1.5</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-fd"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-fd-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-fd-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-fd"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="fd-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>过载保护整定值 I<sub>ol</sub></span>
+                            <strong id="fd-overload-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>短路保护整定值 I<sub>sc</sub></span>
+                            <strong id="fd-short-circuit-result">0 A</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="fd-sensitivity-result">
+                            <h4>灵敏度校验</h4>
+                            <p id="fd-sensitivity-text">校验结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="fd-step1">过载保护：I<sub>ol</sub> = I<sub>N</sub> × K<sub>ol</sub></div>
+                            <div class="step" id="fd-step2">短路保护：I<sub>sc</sub> = min(K<sub>rel</sub> × I<sub>stmax</sub>, I<sub>kmin</sub> / 1.5)</div>
+                            <div class="step" id="fd-step3">灵敏度校验：K<sub>sen</sub> = I<sub>kmin</sub> / I<sub>sc</sub> ≥ 1.5</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="fd-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 启动器整定 -->
+                <div id="starter" class="tab-content">
+                    <h2>启动器整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算启动器的过载保护和短路保护整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        启动器过载保护按电动机额定电流整定，短路保护按躲过电动机启动电流整定。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="st-motor-current">电动机额定电流 I<sub>N</sub> (A)</label>
+                            <input type="number" id="st-motor-current" step="0.1" placeholder="例如: 80">
+                            <div class="error-message" id="st-motor-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="st-start-current">启动电流 I<sub>st</sub> (A)</label>
+                            <input type="number" id="st-start-current" step="0.1" placeholder="例如: 480">
+                            <div class="error-message" id="st-start-current-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="st-overload-factor">过载系数 K<sub>ol</sub></label>
+                            <select id="st-overload-factor">
+                                <option value="1.05">1.05 (一般负荷)</option>
+                                <option value="1.1">1.1 (重负荷)</option>
+                                <option value="1.15">1.15 (冲击负荷)</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="st-reliability-factor">可靠系数 K<sub>rel</sub></label>
+                            <select id="st-reliability-factor">
+                                <option value="1.2">1.2</option>
+                                <option value="1.3">1.3</option>
+                                <option value="1.4">1.4</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-st"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-st-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-st-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-st"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="st-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>过载保护整定值 I<sub>ol</sub></span>
+                            <strong id="st-overload-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>短路保护整定值 I<sub>sc</sub></span>
+                            <strong id="st-short-circuit-result">0 A</strong>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="st-step1">过载保护：I<sub>ol</sub> = I<sub>N</sub> × K<sub>ol</sub></div>
+                            <div class="step" id="st-step2">短路保护：I<sub>sc</sub> = K<sub>rel</sub> × I<sub>st</sub></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="st-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 电动机整定 -->
+                <div id="motor" class="tab-content">
+                    <h2>电动机整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算电动机的过载保护和短路保护整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        电动机过载保护按额定电流整定，短路保护按躲过启动电流整定。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="mt-rated-power">额定功率 P<sub>N</sub> (kW)</label>
+                            <input type="number" id="mt-rated-power" step="0.1" placeholder="例如: 55">
+                            <div class="error-message" id="mt-rated-power-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="mt-rated-voltage">额定电压 U<sub>N</sub> (V)</label>
+                            <input type="number" id="mt-rated-voltage" step="1" value="660" placeholder="例如: 660">
+                            <div class="error-message" id="mt-rated-voltage-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="mt-power-factor">功率因数 cosφ</label>
+                            <input type="number" id="mt-power-factor" step="0.01" value="0.85" placeholder="例如: 0.85">
+                            <div class="error-message" id="mt-power-factor-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="mt-efficiency">效率 η (%)</label>
+                            <input type="number" id="mt-efficiency" step="0.1" value="92" placeholder="例如: 92">
+                            <div class="error-message" id="mt-efficiency-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="mt-start-multiple">启动倍数 K<sub>st</sub></label>
+                            <input type="number" id="mt-start-multiple" step="0.1" value="6" placeholder="例如: 6">
+                            <div class="error-message" id="mt-start-multiple-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="mt-overload-factor">过载系数 K<sub>ol</sub></label>
+                            <select id="mt-overload-factor">
+                                <option value="1.05">1.05 (一般负荷)</option>
+                                <option value="1.1">1.1 (重负荷)</option>
+                                <option value="1.15">1.15 (冲击负荷)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-mt"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-mt-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-mt-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-mt"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="mt-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>额定电流 I<sub>N</sub></span>
+                            <strong id="mt-rated-current">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>启动电流 I<sub>st</sub></span>
+                            <strong id="mt-start-current">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>过载保护整定值 I<sub>ol</sub></span>
+                            <strong id="mt-overload-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>短路保护整定值 I<sub>sc</sub></span>
+                            <strong id="mt-short-circuit-result">0 A</strong>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="mt-step1">额定电流：I<sub>N</sub> = P<sub>N</sub> × 1000 / (√3 × U<sub>N</sub> × cosφ × η)</div>
+                            <div class="step" id="mt-step2">启动电流：I<sub>st</sub> = I<sub>N</sub> × K<sub>st</sub></div>
+                            <div class="step" id="mt-step3">过载保护：I<sub>ol</sub> = I<sub>N</sub> × K<sub>ol</sub></div>
+                            <div class="step" id="mt-step4">短路保护：I<sub>sc</sub> = 1.2 × I<sub>st</sub></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="mt-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 变压器整定 -->
+                <div id="transformer" class="tab-content">
+                    <h2>变压器整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算变压器的过电流保护和速断保护整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        变压器过电流保护按躲过额定电流整定，速断保护按躲过最大短路电流整定。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="tr-rated-power">额定容量 S<sub>N</sub> (kVA)</label>
+                            <input type="number" id="tr-rated-power" step="0.1" placeholder="例如: 800">
+                            <div class="error-message" id="tr-rated-power-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="tr-rated-voltage">额定电压 U<sub>N</sub> (V)</label>
+                            <input type="number" id="tr-rated-voltage" step="1" value="660" placeholder="例如: 660">
+                            <div class="error-message" id="tr-rated-voltage-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="tr-short-circuit">最大短路电流 I<sub>kmax</sub> (A)</label>
+                            <input type="number" id="tr-short-circuit" step="0.1" placeholder="例如: 12000">
+                            <div class="error-message" id="tr-short-circuit-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="tr-min-short-circuit">最小短路电流 I<sub>kmin</sub> (A)</label>
+                            <input type="number" id="tr-min-short-circuit" step="0.1" placeholder="例如: 4500">
+                            <div class="error-message" id="tr-min-short-circuit-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="tr-reliability-factor">可靠系数 K<sub>rel</sub></label>
+                            <select id="tr-reliability-factor">
+                                <option value="1.2">1.2 (一般情况)</option>
+                                <option value="1.3">1.3 (重要设备)</option>
+                                <option value="1.5">1.5 (特别重要设备)</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="tr-return-factor">返回系数 K<sub>re</sub></label>
+                            <input type="number" id="tr-return-factor" step="0.01" value="0.85" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-tr"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-tr-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-tr-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-tr"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="tr-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>额定电流 I<sub>N</sub></span>
+                            <strong id="tr-rated-current">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>过电流保护整定值 I<sub>op</sub></span>
+                            <strong id="tr-overcurrent-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>速断保护整定值 I<sub>inst</sub></span>
+                            <strong id="tr-instantaneous-result">0 A</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="tr-sensitivity-result">
+                            <h4>灵敏度校验</h4>
+                            <p id="tr-sensitivity-text">校验结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="tr-step1">额定电流：I<sub>N</sub> = S<sub>N</sub> × 1000 / (√3 × U<sub>N</sub>)</div>
+                            <div class="step" id="tr-step2">过电流保护：I<sub>op</sub> = K<sub>rel</sub> × I<sub>N</sub> / K<sub>re</sub></div>
+                            <div class="step" id="tr-step3">速断保护：I<sub>inst</sub> = K<sub>rel</sub> × I<sub>kmax</sub></div>
+                            <div class="step" id="tr-step4">灵敏度校验：K<sub>sen</sub> = I<sub>kmin</sub> / I<sub>op</sub> ≥ 1.5</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="tr-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 电缆选型计算 -->
+                <div id="cable" class="tab-content">
+                    <h2>电缆选型计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算电缆的载流量和电压损失。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        电缆选型需满足载流量要求和电压损失要求，同时考虑环境温度和敷设方式。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="cb-load-current">负荷电流 I<sub>L</sub> (A)</label>
+                            <input type="number" id="cb-load-current" step="0.1" placeholder="例如: 150">
+                            <div class="error-message" id="cb-load-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="cb-length">电缆长度 L (m)</label>
+                            <input type="number" id="cb-length" step="1" placeholder="例如: 300">
+                            <div class="error-message" id="cb-length-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="cb-voltage">额定电压 U<sub>N</sub> (V)</label>
+                            <input type="number" id="cb-voltage" step="1" value="660" placeholder="例如: 660">
+                            <div class="error-message" id="cb-voltage-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="cb-power-factor">功率因数 cosφ</label>
+                            <input type="number" id="cb-power-factor" step="0.01" value="0.85" placeholder="例如: 0.85">
+                            <div class="error-message" id="cb-power-factor-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="cb-conductor-material">导体材料</label>
+                            <select id="cb-conductor-material">
+                                <option value="cu">铜</option>
+                                <option value="al">铝</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="cb-installation-method">敷设方式</label>
+                            <select id="cb-installation-method">
+                                <option value="direct">直埋</option>
+                                <option value="tray">桥架</option>
+                                <option value="conduit">穿管</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-cb"><i class="fas fa-calculator"></i> 计算电缆选型</button>
+                        <button class="btn-success" id="export-cb-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-cb-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-cb"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="cb-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>最小电缆截面积</span>
+                            <strong id="cb-min-area">0 mm²</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>推荐电缆型号</span>
+                            <strong id="cb-recommended-type">-</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>电压损失 ΔU</span>
+                            <strong id="cb-voltage-drop">0 %</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>载流量校验</span>
+                            <strong id="cb-current-check">-</strong>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="cb-step1">按载流量选择电缆截面积：根据负荷电流和敷设条件查表</div>
+                            <div class="step" id="cb-step2">按电压损失校验：ΔU = (√3 × I × L × (Rcosφ + Xsinφ)) / U × 100%</div>
+                            <div class="step" id="cb-step3">选择满足条件的电缆型号</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="cb-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 综保整定计算 -->
+                <div id="protection" class="tab-content">
+                    <h2>综保整定计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算综合保护装置的整定值。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        综保装置需设置过载保护、短路保护、漏电保护等，整定值需满足选择性、速动性、灵敏性要求。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="pb-rated-current">额定电流 I<sub>N</sub> (A)</label>
+                            <input type="number" id="pb-rated-current" step="0.1" placeholder="例如: 400">
+                            <div class="error-message" id="pb-rated-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="pb-max-load">最大负荷电流 I<sub>Lmax</sub> (A)</label>
+                            <input type="number" id="pb-max-load" step="0.1" placeholder="例如: 320">
+                            <div class="error-message" id="pb-max-load-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="pb-short-circuit">最大短路电流 I<sub>kmax</sub> (A)</label>
+                            <input type="number" id="pb-short-circuit" step="0.1" placeholder="例如: 8500">
+                            <div class="error-message" id="pb-short-circuit-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="pb-min-short-circuit">最小短路电流 I<sub>kmin</sub> (A)</label>
+                            <input type="number" id="pb-min-short-circuit" step="0.1" placeholder="例如: 2800">
+                            <div class="error-message" id="pb-min-short-circuit-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="pb-leakage-current">漏电电流设定 I<sub>leak</sub> (mA)</label>
+                            <input type="number" id="pb-leakage-current" step="1" value="30" placeholder="例如: 30">
+                            <div class="error-message" id="pb-leakage-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="pb-reliability-factor">可靠系数 K<sub>rel</sub></label>
+                            <select id="pb-reliability-factor">
+                                <option value="1.2">1.2 (一般情况)</option>
+                                <option value="1.3">1.3 (重要设备)</option>
+                                <option value="1.5">1.5 (特别重要设备)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-pb"><i class="fas fa-calculator"></i> 计算整定值</button>
+                        <button class="btn-success" id="export-pb-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-pb-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-pb"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="pb-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>过载保护整定值</span>
+                            <strong id="pb-overload-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>短路保护整定值</span>
+                            <strong id="pb-short-circuit-result">0 A</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>漏电保护整定值</span>
+                            <strong id="pb-leakage-result">0 mA</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="pb-sensitivity-result">
+                            <h4>灵敏度校验</h4>
+                            <p id="pb-sensitivity-text">校验结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="pb-step1">过载保护：I<sub>ol</sub> = K<sub>rel</sub> × I<sub>Lmax</sub></div>
+                            <div class="step" id="pb-step2">短路保护：I<sub>sc</sub> = K<sub>rel</sub> × I<sub>kmax</sub></div>
+                            <div class="step" id="pb-step3">漏电保护：按规程要求设定</div>
+                            <div class="step" id="pb-step4">灵敏度校验：K<sub>sen</sub> = I<sub>kmin</sub> / I<sub>sc</sub> ≥ 1.5</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="pb-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 短路电流计算 -->
+                <div id="short-circuit" class="tab-content">
+                    <h2>短路电流计算</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》计算系统的短路电流。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>计算依据：</strong> 
+                        短路电流计算采用标幺值法，考虑系统阻抗、变压器阻抗和线路阻抗。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sc-system-voltage">系统电压 U<sub>N</sub> (kV)</label>
+                            <input type="number" id="sc-system-voltage" step="0.1" value="10" placeholder="例如: 10">
+                            <div class="error-message" id="sc-system-voltage-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="sc-system-capacity">系统容量 S<sub>k</sub> (MVA)</label>
+                            <input type="number" id="sc-system-capacity" step="0.1" value="100" placeholder="例如: 100">
+                            <div class="error-message" id="sc-system-capacity-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sc-transformer-capacity">变压器容量 S<sub>T</sub> (kVA)</label>
+                            <input type="number" id="sc-transformer-capacity" step="1" placeholder="例如: 800">
+                            <div class="error-message" id="sc-transformer-capacity-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="sc-transformer-impedance">变压器阻抗电压 U<sub>k</sub> (%)</label>
+                            <input type="number" id="sc-transformer-impedance" step="0.1" value="4.5" placeholder="例如: 4.5">
+                            <div class="error-message" id="sc-transformer-impedance-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sc-cable-length">电缆长度 L (m)</label>
+                            <input type="number" id="sc-cable-length" step="1" placeholder="例如: 300">
+                            <div class="error-message" id="sc-cable-length-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="sc-cable-section">电缆截面积 A (mm²)</label>
+                            <input type="number" id="sc-cable-section" step="1" placeholder="例如: 95">
+                            <div class="error-message" id="sc-cable-section-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-sc"><i class="fas fa-calculator"></i> 计算短路电流</button>
+                        <button class="btn-success" id="export-sc-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-sc-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-sc"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="sc-result" class="result-card" style="display: none;">
+                        <h3>计算结果</h3>
+                        <div class="result-item">
+                            <span>系统阻抗标幺值 X<sub>*s</sub></span>
+                            <strong id="sc-system-impedance">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>变压器阻抗标幺值 X<sub>*T</sub></span>
+                            <strong id="sc-transformer-impedance-result">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>线路阻抗标幺值 X<sub>*L</sub></span>
+                            <strong id="sc-line-impedance">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>总阻抗标幺值 X<sub>*Σ</sub></span>
+                            <strong id="sc-total-impedance">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>短路电流 I<sub>k</sub></span>
+                            <strong id="sc-short-circuit-current">0 kA</strong>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="sc-step1">系统阻抗：X<sub>*s</sub> = S<sub>j</sub> / S<sub>k</sub></div>
+                            <div class="step" id="sc-step2">变压器阻抗：X<sub>*T</sub> = U<sub>k</sub>% × S<sub>j</sub> / (100 × S<sub>T</sub>)</div>
+                            <div class="step" id="sc-step3">线路阻抗：X<sub>*L</sub> = X<sub>0</sub> × L × S<sub>j</sub> / U<sub>j</sub><sup>2</sup></div>
+                            <div class="step" id="sc-step4">总阻抗：X<sub>*Σ</sub> = X<sub>*s</sub> + X<sub>*T</sub> + X<sub>*L</sub></div>
+                            <div class="step" id="sc-step5">短路电流：I<sub>k</sub> = I<sub>j</sub> / X<sub>*Σ</sub></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="sc-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 灵敏度校验 -->
+                <div id="sensitivity" class="tab-content">
+                    <h2>灵敏度校验</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》校验保护装置的灵敏度。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>校验依据：</strong> 
+                        保护装置的灵敏度系数应满足规程要求，过电流保护K<sub>sen</sub>≥1.5，速断保护K<sub>sen</sub>≥2。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sen-protection-type">保护类型</label>
+                            <select id="sen-protection-type">
+                                <option value="overcurrent">过电流保护</option>
+                                <option value="instantaneous">速断保护</option>
+                                <option value="earth">接地保护</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label for="sen-setting-value">保护整定值 I<sub>set</sub> (A)</label>
+                            <input type="number" id="sen-setting-value" step="0.1" placeholder="例如: 300">
+                            <div class="error-message" id="sen-setting-value-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sen-fault-current">故障电流 I<sub>k</sub> (A)</label>
+                            <input type="number" id="sen-fault-current" step="0.1" placeholder="例如: 800">
+                            <div class="error-message" id="sen-fault-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="sen-required-sensitivity">要求灵敏度系数 K<sub>req</sub></label>
+                            <input type="number" id="sen-required-sensitivity" step="0.1" value="1.5" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-sen"><i class="fas fa-calculator"></i> 校验灵敏度</button>
+                        <button class="btn-success" id="export-sen-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-sen-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-sen"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="sen-result" class="result-card" style="display: none;">
+                        <h3>校验结果</h3>
+                        <div class="result-item">
+                            <span>灵敏度系数 K<sub>sen</sub></span>
+                            <strong id="sen-sensitivity-coefficient">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>要求灵敏度系数 K<sub>req</sub></span>
+                            <strong id="sen-required-coefficient">0</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="sen-sensitivity-result">
+                            <h4>校验结论</h4>
+                            <p id="sen-sensitivity-text">校验结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>计算过程</h4>
+                            <div class="step" id="sen-step1">灵敏度系数：K<sub>sen</sub> = I<sub>k</sub> / I<sub>set</sub></div>
+                            <div class="step" id="sen-step2">校验：K<sub>sen</sub> ≥ K<sub>req</sub></div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="sen-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 保护配合分析 -->
+                <div id="coordination" class="tab-content">
+                    <h2>保护配合分析</h2>
+                    <p>根据《煤矿井下供电的三大保护细则》分析保护装置的选择性配合。</p>
+                    
+                    <div class="standard-reference">
+                        <strong>分析依据：</strong> 
+                        上下级保护装置应满足选择性要求，故障时仅最近故障点的保护动作。
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="coord-upstream-setting">上级保护整定值 I<sub>up</sub> (A)</label>
+                            <input type="number" id="coord-upstream-setting" step="0.1" placeholder="例如: 600">
+                            <div class="error-message" id="coord-upstream-setting-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="coord-downstream-setting">下级保护整定值 I<sub>down</sub> (A)</label>
+                            <input type="number" id="coord-downstream-setting" step="0.1" placeholder="例如: 300">
+                            <div class="error-message" id="coord-downstream-setting-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="coord-upstream-time">上级保护时间 t<sub>up</sub> (s)</label>
+                            <input type="number" id="coord-upstream-time" step="0.01" placeholder="例如: 0.5">
+                            <div class="error-message" id="coord-upstream-time-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="coord-downstream-time">下级保护时间 t<sub>down</sub> (s)</label>
+                            <input type="number" id="coord-downstream-time" step="0.01" placeholder="例如: 0.2">
+                            <div class="error-message" id="coord-downstream-time-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="coord-fault-current">故障电流 I<sub>k</sub> (A)</label>
+                            <input type="number" id="coord-fault-current" step="0.1" placeholder="例如: 2500">
+                            <div class="error-message" id="coord-fault-current-error"></div>
+                        </div>
+                        <div class="form-col">
+                            <label for="coord-time-step">时间级差 Δt (s)</label>
+                            <input type="number" id="coord-time-step" step="0.01" value="0.3" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="calculate-coord"><i class="fas fa-calculator"></i> 分析保护配合</button>
+                        <button class="btn-success" id="export-coord-word"><i class="fas fa-file-word"></i> 导出Word</button>
+                        <button class="btn-success" id="export-coord-excel"><i class="fas fa-file-excel"></i> 导出Excel</button>
+                        <button class="btn-warning" id="save-coord"><i class="fas fa-save"></i> 保存计算</button>
+                    </div>
+                    
+                    <div id="coord-result" class="result-card" style="display: none;">
+                        <h3>分析结果</h3>
+                        <div class="result-item">
+                            <span>电流配合系数 K<sub>I</sub></span>
+                            <strong id="coord-current-ratio">0</strong>
+                        </div>
+                        <div class="result-item">
+                            <span>时间配合系数 K<sub>t</sub></span>
+                            <strong id="coord-time-ratio">0</strong>
+                        </div>
+                        
+                        <div class="sensitivity-check" id="coord-coordination-result">
+                            <h4>配合结论</h4>
+                            <p id="coord-coordination-text">分析结果将显示在这里</p>
+                        </div>
+                        
+                        <div class="calculation-steps">
+                            <h4>分析过程</h4>
+                            <div class="step" id="coord-step1">电流配合：K<sub>I</sub> = I<sub>up</sub> / I<sub>down</sub> ≥ 1.2</div>
+                            <div class="step" id="coord-step2">时间配合：K<sub>t</sub> = t<sub>up</sub> - t<sub>down</sub> ≥ Δt</div>
+                            <div class="step" id="coord-step3">综合分析：电流和时间配合均满足要求</div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="coord-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <footer>
+            <p>煤矿供电整定计算系统 &copy; 2023 | 依据《煤矿井下供电的三大保护细则》和《煤矿供电设计与继电保护整定计算示例》开发</p>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量存储计算结果
+        let calculationResults = {
+            highVoltage: {completed: false, passed: false},
+            feeder: {completed: false, passed: false},
+            starter: {completed: false, passed: false},
+            motor: {completed: false, passed: false},
+            transformer: {completed: false, passed: false},
+            cable: {completed: false, passed: false},
+            protection: {completed: false, passed: false},
+            shortCircuit: {completed: false, passed: false},
+            sensitivity: {completed: false, passed: false},
+            coordination: {completed: false, passed: false}
+        };
+        
+        // 历史记录数组
+        let calculationHistory = [];
+        
+        // 文档管理数组
+        let userDocuments = [];
+        
+        // 初始化图表
+        let overviewChart, hvChart, fdChart, stChart, mtChart, trChart, cbChart, pbChart, scChart, senChart, coordChart;
+        
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            const savedResults = localStorage.getItem('calculationResults');
+            if (savedResults) {
+                calculationResults = JSON.parse(savedResults);
+            }
+            
+            const savedHistory = localStorage.getItem('calculationHistory');
+            if (savedHistory) {
+                calculationHistory = JSON.parse(savedHistory);
+                updateCalculationHistory();
+            }
+            
+            const savedDocuments = localStorage.getItem('userDocuments');
+            if (savedDocuments) {
+                userDocuments = JSON.parse(savedDocuments);
+                updateDocumentsGrid();
+            }
+            
+            updateOverviewStats();
+        }
+        
+        // 保存到本地存储
+        function saveToLocalStorage() {
+            localStorage.setItem('calculationResults', JSON.stringify(calculationResults));
+            localStorage.setItem('calculationHistory', JSON.stringify(calculationHistory));
+            localStorage.setItem('userDocuments', JSON.stringify(userDocuments));
+        }
+        
+        // 更新系统概览统计
+        function updateOverviewStats() {
+            let completed = 0;
+            let passed = 0;
+            let needAdjustments = 0;
+            
+            for (const key in calculationResults) {
+                if (calculationResults[key].completed) {
+                    completed++;
+                    if (calculationResults[key].passed) {
+                        passed++;
+                    } else {
+                        needAdjustments++;
+                    }
+                }
+            }
+            
+            document.getElementById('completed-calculations').textContent = completed + ' 项';
+            document.getElementById('passed-checks').textContent = passed + ' 项';
+            document.getElementById('need-adjustments').textContent = needAdjustments + ' 项';
+            
+            // 更新进度条
+            const totalModules = Object.keys(calculationResults).length;
+            const completedPercent = (completed / totalModules) * 100;
+            const passedPercent = (passed / totalModules) * 100;
+            const adjustmentsPercent = (needAdjustments / totalModules) * 100;
+            
+            document.getElementById('completed-progress').style.width = completedPercent + '%';
+            document.getElementById('passed-progress').style.width = passedPercent + '%';
+            document.getElementById('adjustments-progress').style.width = adjustmentsPercent + '%';
+            
+            // 更新图表
+            updateOverviewChart();
+        }
+        
+        // 更新概览图表
+        function updateOverviewChart() {
+            const ctx = document.getElementById('overview-chart').getContext('2d');
+            
+            if (overviewChart) {
+                overviewChart.destroy();
+            }
+            
+            const completed = Object.values(calculationResults).filter(r => r.completed).length;
+            const passed = Object.values(calculationResults).filter(r => r.passed).length;
+            const notCompleted = Object.keys(calculationResults).length - completed;
+            
+            overviewChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['校验通过', '需要调整', '未完成'],
+                    datasets: [{
+                        data: [passed, completed - passed, notCompleted],
+                        backgroundColor: [
+                            '#2ecc71',
+                            '#e74c3c',
+                            '#95a5a6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: '计算完成情况'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 更新计算历史
+        function updateCalculationHistory() {
+            const historyContainer = document.getElementById('calculation-history');
+            historyContainer.innerHTML = '';
+            
+            // 只显示最近5条记录
+            const recentHistory = calculationHistory.slice(-5).reverse();
+            
+            if (recentHistory.length === 0) {
+                historyContainer.innerHTML = '<p>暂无计算记录</p>';
+                return;
+            }
+            
+            recentHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <strong>${item.module}</strong>
+                        <div>${item.timestamp}</div>
+                    </div>
+                    <div>
+                        <button class="btn-view" data-index="${calculationHistory.length - 1 - index}">查看</button>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
+            
+            // 添加查看按钮的事件监听
+            document.querySelectorAll('.btn-view').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    loadCalculationFromHistory(index);
+                });
+            });
+        }
+        
+        // 更新文档网格
+        function updateDocumentsGrid() {
+            const documentsGrid = document.getElementById('documents-grid');
+            documentsGrid.innerHTML = '';
+            
+            if (userDocuments.length === 0) {
+                documentsGrid.innerHTML = '<p>暂无文档，点击"新建文档"创建第一个文档。</p>';
+                return;
+            }
+            
+            userDocuments.forEach((doc, index) => {
+                const docCard = document.createElement('div');
+                docCard.className = 'document-card';
+                docCard.setAttribute('data-type', 'user');
+                docCard.setAttribute('data-name', doc.name);
+                
+                const iconClass = doc.type === 'word' ? 'fa-file-word' : 'fa-file-excel';
+                
+                docCard.innerHTML = `
+                    <i class="fas ${iconClass} document-icon"></i>
+                    <h4>${doc.name}</h4>
+                    <p>${doc.type === 'word' ? 'Word文档' : 'Excel文档'} | ${doc.date}</p>
+                    <div class="document-actions">
+                        <button class="btn-success" data-index="${index}"><i class="fas fa-eye"></i> 预览</button>
+                        <button class="btn-warning" data-index="${index}"><i class="fas fa-download"></i> 下载</button>
+                        <button class="btn-danger" data-index="${index}"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                `;
+                
+                documentsGrid.appendChild(docCard);
+            });
+            
+            // 添加文档操作事件监听
+            document.querySelectorAll('#documents-grid .document-actions button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const action = this.classList.contains('btn-success') ? 'preview' : 
+                                  this.classList.contains('btn-warning') ? 'download' : 'delete';
+                    
+                    handleDocumentAction(index, action);
+                });
+            });
+        }
+        
+        // 处理文档操作
+        function handleDocumentAction(index, action) {
+            const doc = userDocuments[index];
+            
+            switch(action) {
+                case 'preview':
+                    previewDocument(doc);
+                    break;
+                case 'download':
+                    downloadDocument(doc);
+                    break;
+                case 'delete':
+                    if (confirm(`确定要删除文档"${doc.name}"吗？`)) {
+                        userDocuments.splice(index, 1);
+                        updateDocumentsGrid();
+                        saveToLocalStorage();
+                    }
+                    break;
+            }
+        }
+        
+        // 预览文档
+        function previewDocument(doc) {
+            alert(`预览文档: ${doc.name}\n类型: ${doc.type}\n日期: ${doc.date}`);
+            // 在实际应用中，这里可以实现真正的文档预览功能
+        }
+        
+        // 下载文档
+        function downloadDocument(doc) {
+            alert(`下载文档: ${doc.name}`);
+            // 在实际应用中，这里可以实现真正的文档下载功能
+        }
+        
+        // 创建新文档
+        function createNewDocument() {
+            const docName = prompt('请输入文档名称:');
+            if (!docName) return;
+            
+            const docType = confirm('选择文档类型:\n确定 - Word文档\n取消 - Excel文档') ? 'word' : 'excel';
+            
+            const newDoc = {
+                name: docName,
+                type: docType,
+                date: new Date().toLocaleDateString('zh-CN'),
+                content: ''
+            };
+            
+            userDocuments.push(newDoc);
+            updateDocumentsGrid();
+            saveToLocalStorage();
+            
+            alert(`已创建新的${docType === 'word' ? 'Word' : 'Excel'}文档: ${docName}`);
+        }
+        
+        // 从历史记录加载计算
+        function loadCalculationFromHistory(index) {
+            const historyItem = calculationHistory[index];
+            if (!historyItem) return;
+            
+            // 切换到对应的模块
+            const menuItem = document.querySelector(`.menu-item[data-tab="${historyItem.moduleId}"]`);
+            if (menuItem) {
+                menuItem.click();
+            }
+            
+            // 填充数据（这里需要根据具体模块实现）
+            // 示例：高爆开关模块
+            if (historyItem.moduleId === 'high-voltage') {
+                document.getElementById('hv-rated-current').value = historyItem.data.ratedCurrent || '';
+                document.getElementById('hv-max-load').value = historyItem.data.maxLoad || '';
+                document.getElementById('hv-short-circuit').value = historyItem.data.shortCircuit || '';
+                document.getElementById('hv-min-short-circuit').value = historyItem.data.minShortCircuit || '';
+                document.getElementById('hv-reliability-factor').value = historyItem.data.reliabilityFactor || '1.2';
+                
+                // 重新计算
+                setTimeout(() => {
+                    document.getElementById('calculate-hv').click();
+                }, 100);
+            }
+        }
+        
+        // 添加计算记录到历史
+        function addToCalculationHistory(moduleName, moduleId, data) {
+            const timestamp = new Date().toLocaleString('zh-CN');
+            calculationHistory.push({
+                module: moduleName,
+                moduleId: moduleId,
+                timestamp: timestamp,
+                data: data
+            });
+            
+            // 限制历史记录数量
+            if (calculationHistory.length > 50) {
+                calculationHistory = calculationHistory.slice(-50);
+            }
+            
+            updateCalculationHistory();
+            saveToLocalStorage();
+        }
+        
+        // 输入验证函数
+        function validateInput(input, minValue = 0, maxValue = Infinity) {
+            const value = parseFloat(input.value);
+            const errorElement = document.getElementById(input.id + '-error');
+            
+            if (isNaN(value) || value <= minValue || value > maxValue) {
+                input.classList.add('input-error');
+                errorElement.textContent = `请输入大于${minValue}且不超过${maxValue}的有效数值`;
+                return false;
+            } else {
+                input.classList.remove('input-error');
+                errorElement.textContent = '';
+                return true;
+            }
+        }
+        
+        // 选项卡切换功能
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // 移除所有活动状态
+                document.querySelectorAll('.menu-item').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加当前活动状态
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // 在移动端切换选项卡后关闭侧边栏
+                if (window.innerWidth <= 1024) {
+                    document.getElementById('sidebar').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                }
+            });
+        });
+        
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        // 点击遮罩层关闭侧边栏
+        document.getElementById('overlay').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        // 文档管理功能
+        document.getElementById('create-new-doc').addEventListener('click', createNewDocument);
+        
+        document.getElementById('import-document').addEventListener('click', function() {
+            alert('文档导入功能（在实际应用中，这里可以实现文件上传功能）');
+        });
+        
+        // 高爆开关计算
+        document.getElementById('calculate-hv').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('hv-rated-current'),
+                document.getElementById('hv-max-load'),
+                document.getElementById('hv-short-circuit'),
+                document.getElementById('hv-min-short-circuit')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const ratedCurrent = parseFloat(document.getElementById('hv-rated-current').value);
+            const maxLoad = parseFloat(document.getElementById('hv-max-load').value);
+            const shortCircuit = parseFloat(document.getElementById('hv-short-circuit').value);
+            const minShortCircuit = parseFloat(document.getElementById('hv-min-short-circuit').value);
+            const reliabilityFactor = parseFloat(document.getElementById('hv-reliability-factor').value);
+            const returnFactor = parseFloat(document.getElementById('hv-return-factor').value);
+            
+            // 计算过电流保护整定值
+            const overcurrentSetting = (reliabilityFactor * maxLoad) / returnFactor;
+            
+            // 计算速断保护整定值
+            const instantaneousSetting = reliabilityFactor * shortCircuit;
+            
+            // 灵敏度校验
+            const sensitivityCoefficient = minShortCircuit / overcurrentSetting;
+            const sensitivityPass = sensitivityCoefficient >= 1.5;
+            
+            // 显示结果
+            document.getElementById('hv-overcurrent-result').textContent = overcurrentSetting.toFixed(2) + ' A';
+            document.getElementById('hv-instantaneous-result').textContent = instantaneousSetting.toFixed(2) + ' A';
+            
+            // 显示灵敏度校验结果
+            const sensitivityResult = document.getElementById('hv-sensitivity-result');
+            const sensitivityText = document.getElementById('hv-sensitivity-text');
+            
+            if (sensitivityPass) {
+                sensitivityResult.className = 'sensitivity-check pass';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} ≥ 1.5，<strong>校验通过</strong>`;
+            } else {
+                sensitivityResult.className = 'sensitivity-check fail';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} < 1.5，<strong>校验不通过</strong>`;
+            }
+            
+            // 显示计算步骤
+            document.getElementById('hv-step1').textContent = 
+                `过电流保护：I<sub>op</sub> = ${reliabilityFactor} × ${maxLoad} / ${returnFactor} = ${overcurrentSetting.toFixed(2)} A`;
+            document.getElementById('hv-step2').textContent = 
+                `速断保护：I<sub>inst</sub> = ${reliabilityFactor} × ${shortCircuit} = ${instantaneousSetting.toFixed(2)} A`;
+            document.getElementById('hv-step3').textContent = 
+                `灵敏度校验：K<sub>sen</sub> = ${minShortCircuit} / ${overcurrentSetting.toFixed(2)} = ${sensitivityCoefficient.toFixed(2)}`;
+            
+            // 更新图表
+            updateHVChart(ratedCurrent, maxLoad, overcurrentSetting, instantaneousSetting);
+            
+            // 存储结果
+            calculationResults.highVoltage = {
+                completed: true,
+                passed: sensitivityPass,
+                ratedCurrent,
+                maxLoad,
+                shortCircuit,
+                minShortCircuit,
+                reliabilityFactor,
+                returnFactor,
+                overcurrentSetting,
+                instantaneousSetting,
+                sensitivityCoefficient,
+                sensitivityPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('hv-result').style.display = 'block';
+        });
+        
+        // 更新高爆开关图表
+        function updateHVChart(ratedCurrent, maxLoad, overcurrentSetting, instantaneousSetting) {
+            const ctx = document.getElementById('hv-chart').getContext('2d');
+            
+            if (hvChart) {
+                hvChart.destroy();
+            }
+            
+            hvChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['额定电流', '最大负荷', '过电流保护', '速断保护'],
+                    datasets: [{
+                        label: '电流值 (A)',
+                        data: [ratedCurrent, maxLoad, overcurrentSetting, instantaneousSetting],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电流 (A)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '高爆开关整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Word导出功能
+        document.getElementById('export-hv-word').addEventListener('click', function() {
+            if (!calculationResults.highVoltage.completed) {
+                alert('请先完成计算再导出Word文档');
+                return;
+            }
+            
+            // 在实际应用中，这里可以使用docx.js等库生成Word文档
+            // 这里简化实现，仅显示提示
+            alert('Word文档导出功能\n\n在实际应用中，这里可以使用docx.js库生成包含计算结果的Word文档。');
+        });
+        
+        // Excel导出功能
+        document.getElementById('export-hv-excel').addEventListener('click', function() {
+            if (!calculationResults.highVoltage.completed) {
+                alert('请先完成计算再导出Excel文档');
+                return;
+            }
+            
+            // 创建Excel工作簿
+            const wb = XLSX.utils.book_new();
+            
+            // 创建数据工作表
+            const data = [
+                ['高爆开关整定计算结果'],
+                [''],
+                ['参数名称', '数值', '单位'],
+                ['额定电流', calculationResults.highVoltage.ratedCurrent, 'A'],
+                ['最大负荷电流', calculationResults.highVoltage.maxLoad, 'A'],
+                ['最大短路电流', calculationResults.highVoltage.shortCircuit, 'A'],
+                ['最小短路电流', calculationResults.highVoltage.minShortCircuit, 'A'],
+                ['可靠系数', calculationResults.highVoltage.reliabilityFactor, ''],
+                ['返回系数', calculationResults.highVoltage.returnFactor, ''],
+                [''],
+                ['计算结果'],
+                ['过电流保护整定值', calculationResults.highVoltage.overcurrentSetting.toFixed(2), 'A'],
+                ['速断保护整定值', calculationResults.highVoltage.instantaneousSetting.toFixed(2), 'A'],
+                ['灵敏度系数', calculationResults.highVoltage.sensitivityCoefficient.toFixed(2), ''],
+                ['校验结果', calculationResults.highVoltage.sensitivityPass ? '通过' : '不通过', '']
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "高爆开关整定");
+            
+            // 导出Excel文件
+            XLSX.writeFile(wb, "高爆开关整定计算结果.xlsx");
+        });
+        
+        // 保存计算功能
+        document.getElementById('save-hv').addEventListener('click', function() {
+            const ratedCurrent = parseFloat(document.getElementById('hv-rated-current').value);
+            const maxLoad = parseFloat(document.getElementById('hv-max-load').value);
+            const shortCircuit = parseFloat(document.getElementById('hv-short-circuit').value);
+            const minShortCircuit = parseFloat(document.getElementById('hv-min-short-circuit').value);
+            const reliabilityFactor = parseFloat(document.getElementById('hv-reliability-factor').value);
+            
+            if (!ratedCurrent || !maxLoad || !shortCircuit || !minShortCircuit) {
+                alert('请先完成计算再保存');
+                return;
+            }
+            
+            addToCalculationHistory('高爆开关整定', 'high-voltage', {
+                ratedCurrent, maxLoad, shortCircuit, minShortCircuit, reliabilityFactor
+            });
+            
+            alert('计算已保存到历史记录');
+        });
+        
+        // 馈电开关计算
+        document.getElementById('calculate-fd').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('fd-rated-current'),
+                document.getElementById('fd-max-start'),
+                document.getElementById('fd-short-circuit-remote'),
+                document.getElementById('fd-short-circuit-near')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const ratedCurrent = parseFloat(document.getElementById('fd-rated-current').value);
+            const maxStart = parseFloat(document.getElementById('fd-max-start').value);
+            const shortCircuitRemote = parseFloat(document.getElementById('fd-short-circuit-remote').value);
+            const shortCircuitNear = parseFloat(document.getElementById('fd-short-circuit-near').value);
+            const overloadFactor = parseFloat(document.getElementById('fd-overload-factor').value);
+            const reliabilityFactor = parseFloat(document.getElementById('fd-reliability-factor').value);
+            
+            // 计算过载保护整定值
+            const overloadSetting = ratedCurrent * overloadFactor;
+            
+            // 计算短路保护整定值（取可靠系数与最大启动电流的乘积和满足灵敏度的较小值）
+            const option1 = reliabilityFactor * maxStart;
+            const option2 = shortCircuitRemote / 1.5; // 满足灵敏度要求
+            const shortCircuitSetting = Math.min(option1, option2);
+            
+            // 灵敏度校验
+            const sensitivityCoefficient = shortCircuitRemote / shortCircuitSetting;
+            const sensitivityPass = sensitivityCoefficient >= 1.5;
+            
+            // 显示结果
+            document.getElementById('fd-overload-result').textContent = overloadSetting.toFixed(2) + ' A';
+            document.getElementById('fd-short-circuit-result').textContent = shortCircuitSetting.toFixed(2) + ' A';
+            
+            // 显示灵敏度校验结果
+            const sensitivityResult = document.getElementById('fd-sensitivity-result');
+            const sensitivityText = document.getElementById('fd-sensitivity-text');
+            
+            if (sensitivityPass) {
+                sensitivityResult.className = 'sensitivity-check pass';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} ≥ 1.5，<strong>校验通过</strong>`;
+            } else {
+                sensitivityResult.className = 'sensitivity-check fail';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} < 1.5，<strong>校验不通过</strong>`;
+            }
+            
+            // 显示计算步骤
+            document.getElementById('fd-step1').textContent = 
+                `过载保护：I<sub>ol</sub> = ${ratedCurrent} × ${overloadFactor} = ${overloadSetting.toFixed(2)} A`;
+            document.getElementById('fd-step2').textContent = 
+                `短路保护：I<sub>sc</sub> = min(${reliabilityFactor} × ${maxStart}, ${shortCircuitRemote} / 1.5) = ${shortCircuitSetting.toFixed(2)} A`;
+            document.getElementById('fd-step3').textContent = 
+                `灵敏度校验：K<sub>sen</sub> = ${shortCircuitRemote} / ${shortCircuitSetting.toFixed(2)} = ${sensitivityCoefficient.toFixed(2)}`;
+            
+            // 更新图表
+            updateFDChart(ratedCurrent, maxStart, overloadSetting, shortCircuitSetting);
+            
+            // 存储结果
+            calculationResults.feeder = {
+                completed: true,
+                passed: sensitivityPass,
+                ratedCurrent,
+                maxStart,
+                shortCircuitRemote,
+                shortCircuitNear,
+                overloadFactor,
+                reliabilityFactor,
+                overloadSetting,
+                shortCircuitSetting,
+                sensitivityCoefficient,
+                sensitivityPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('fd-result').style.display = 'block';
+        });
+        
+        // 更新馈电开关图表
+        function updateFDChart(ratedCurrent, maxStart, overloadSetting, shortCircuitSetting) {
+            const ctx = document.getElementById('fd-chart').getContext('2d');
+            
+            if (fdChart) {
+                fdChart.destroy();
+            }
+            
+            fdChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['额定电流', '最大启动', '过载保护', '短路保护'],
+                    datasets: [{
+                        label: '电流值 (A)',
+                        data: [ratedCurrent, maxStart, overloadSetting, shortCircuitSetting],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电流 (A)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '馈电开关整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 启动器整定计算
+        document.getElementById('calculate-st').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('st-motor-current'),
+                document.getElementById('st-start-current')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 10000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const motorCurrent = parseFloat(document.getElementById('st-motor-current').value);
+            const startCurrent = parseFloat(document.getElementById('st-start-current').value);
+            const overloadFactor = parseFloat(document.getElementById('st-overload-factor').value);
+            const reliabilityFactor = parseFloat(document.getElementById('st-reliability-factor').value);
+            
+            // 计算过载保护整定值
+            const overloadSetting = motorCurrent * overloadFactor;
+            
+            // 计算短路保护整定值
+            const shortCircuitSetting = reliabilityFactor * startCurrent;
+            
+            // 显示结果
+            document.getElementById('st-overload-result').textContent = overloadSetting.toFixed(2) + ' A';
+            document.getElementById('st-short-circuit-result').textContent = shortCircuitSetting.toFixed(2) + ' A';
+            
+            // 显示计算步骤
+            document.getElementById('st-step1').textContent = 
+                `过载保护：I<sub>ol</sub> = ${motorCurrent} × ${overloadFactor} = ${overloadSetting.toFixed(2)} A`;
+            document.getElementById('st-step2').textContent = 
+                `短路保护：I<sub>sc</sub> = ${reliabilityFactor} × ${startCurrent} = ${shortCircuitSetting.toFixed(2)} A`;
+            
+            // 更新图表
+            updateSTChart(motorCurrent, startCurrent, overloadSetting, shortCircuitSetting);
+            
+            // 存储结果
+            calculationResults.starter = {
+                completed: true,
+                passed: true,
+                motorCurrent,
+                startCurrent,
+                overloadFactor,
+                reliabilityFactor,
+                overloadSetting,
+                shortCircuitSetting
+            };
+            
+            updateOverviewStats();
+            document.getElementById('st-result').style.display = 'block';
+        });
+        
+        // 更新启动器图表
+        function updateSTChart(motorCurrent, startCurrent, overloadSetting, shortCircuitSetting) {
+            const ctx = document.getElementById('st-chart').getContext('2d');
+            
+            if (stChart) {
+                stChart.destroy();
+            }
+            
+            stChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['额定电流', '启动电流', '过载保护', '短路保护'],
+                    datasets: [{
+                        label: '电流值 (A)',
+                        data: [motorCurrent, startCurrent, overloadSetting, shortCircuitSetting],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电流 (A)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '启动器整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 电动机整定计算
+        document.getElementById('calculate-mt').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('mt-rated-power'),
+                document.getElementById('mt-rated-voltage'),
+                document.getElementById('mt-power-factor'),
+                document.getElementById('mt-efficiency'),
+                document.getElementById('mt-start-multiple')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 10000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const ratedPower = parseFloat(document.getElementById('mt-rated-power').value);
+            const ratedVoltage = parseFloat(document.getElementById('mt-rated-voltage').value);
+            const powerFactor = parseFloat(document.getElementById('mt-power-factor').value);
+            const efficiency = parseFloat(document.getElementById('mt-efficiency').value);
+            const startMultiple = parseFloat(document.getElementById('mt-start-multiple').value);
+            const overloadFactor = parseFloat(document.getElementById('mt-overload-factor').value);
+            
+            // 计算额定电流
+            const ratedCurrent = (ratedPower * 1000) / (Math.sqrt(3) * ratedVoltage * powerFactor * (efficiency/100));
+            
+            // 计算启动电流
+            const startCurrent = ratedCurrent * startMultiple;
+            
+            // 计算过载保护整定值
+            const overloadSetting = ratedCurrent * overloadFactor;
+            
+            // 计算短路保护整定值
+            const shortCircuitSetting = 1.2 * startCurrent;
+            
+            // 显示结果
+            document.getElementById('mt-rated-current').textContent = ratedCurrent.toFixed(2) + ' A';
+            document.getElementById('mt-start-current').textContent = startCurrent.toFixed(2) + ' A';
+            document.getElementById('mt-overload-result').textContent = overloadSetting.toFixed(2) + ' A';
+            document.getElementById('mt-short-circuit-result').textContent = shortCircuitSetting.toFixed(2) + ' A';
+            
+            // 显示计算步骤
+            document.getElementById('mt-step1').textContent = 
+                `额定电流：I<sub>N</sub> = ${ratedPower} × 1000 / (√3 × ${ratedVoltage} × ${powerFactor} × ${efficiency/100}) = ${ratedCurrent.toFixed(2)} A`;
+            document.getElementById('mt-step2').textContent = 
+                `启动电流：I<sub>st</sub> = ${ratedCurrent.toFixed(2)} × ${startMultiple} = ${startCurrent.toFixed(2)} A`;
+            document.getElementById('mt-step3').textContent = 
+                `过载保护：I<sub>ol</sub> = ${ratedCurrent.toFixed(2)} × ${overloadFactor} = ${overloadSetting.toFixed(2)} A`;
+            document.getElementById('mt-step4').textContent = 
+                `短路保护：I<sub>sc</sub> = 1.2 × ${startCurrent.toFixed(2)} = ${shortCircuitSetting.toFixed(2)} A`;
+            
+            // 更新图表
+            updateMTChart(ratedCurrent, startCurrent, overloadSetting, shortCircuitSetting);
+            
+            // 存储结果
+            calculationResults.motor = {
+                completed: true,
+                passed: true,
+                ratedPower,
+                ratedVoltage,
+                powerFactor,
+                efficiency,
+                startMultiple,
+                overloadFactor,
+                ratedCurrent,
+                startCurrent,
+                overloadSetting,
+                shortCircuitSetting
+            };
+            
+            updateOverviewStats();
+            document.getElementById('mt-result').style.display = 'block';
+        });
+        
+        // 更新电动机图表
+        function updateMTChart(ratedCurrent, startCurrent, overloadSetting, shortCircuitSetting) {
+            const ctx = document.getElementById('mt-chart').getContext('2d');
+            
+            if (mtChart) {
+                mtChart.destroy();
+            }
+            
+            mtChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['额定电流', '启动电流', '过载保护', '短路保护'],
+                    datasets: [{
+                        label: '电流值 (A)',
+                        data: [ratedCurrent, startCurrent, overloadSetting, shortCircuitSetting],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电流 (A)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '电动机整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 变压器整定计算
+        document.getElementById('calculate-tr').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('tr-rated-power'),
+                document.getElementById('tr-rated-voltage'),
+                document.getElementById('tr-short-circuit'),
+                document.getElementById('tr-min-short-circuit')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const ratedPower = parseFloat(document.getElementById('tr-rated-power').value);
+            const ratedVoltage = parseFloat(document.getElementById('tr-rated-voltage').value);
+            const shortCircuit = parseFloat(document.getElementById('tr-short-circuit').value);
+            const minShortCircuit = parseFloat(document.getElementById('tr-min-short-circuit').value);
+            const reliabilityFactor = parseFloat(document.getElementById('tr-reliability-factor').value);
+            const returnFactor = parseFloat(document.getElementById('tr-return-factor').value);
+            
+            // 计算额定电流
+            const ratedCurrent = (ratedPower * 1000) / (Math.sqrt(3) * ratedVoltage);
+            
+            // 计算过电流保护整定值
+            const overcurrentSetting = (reliabilityFactor * ratedCurrent) / returnFactor;
+            
+            // 计算速断保护整定值
+            const instantaneousSetting = reliabilityFactor * shortCircuit;
+            
+            // 灵敏度校验
+            const sensitivityCoefficient = minShortCircuit / overcurrentSetting;
+            const sensitivityPass = sensitivityCoefficient >= 1.5;
+            
+            // 显示结果
+            document.getElementById('tr-rated-current').textContent = ratedCurrent.toFixed(2) + ' A';
+            document.getElementById('tr-overcurrent-result').textContent = overcurrentSetting.toFixed(2) + ' A';
+            document.getElementById('tr-instantaneous-result').textContent = instantaneousSetting.toFixed(2) + ' A';
+            
+            // 显示灵敏度校验结果
+            const sensitivityResult = document.getElementById('tr-sensitivity-result');
+            const sensitivityText = document.getElementById('tr-sensitivity-text');
+            
+            if (sensitivityPass) {
+                sensitivityResult.className = 'sensitivity-check pass';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} ≥ 1.5，<strong>校验通过</strong>`;
+            } else {
+                sensitivityResult.className = 'sensitivity-check fail';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} < 1.5，<strong>校验不通过</strong>`;
+            }
+            
+            // 显示计算步骤
+            document.getElementById('tr-step1').textContent = 
+                `额定电流：I<sub>N</sub> = ${ratedPower} × 1000 / (√3 × ${ratedVoltage}) = ${ratedCurrent.toFixed(2)} A`;
+            document.getElementById('tr-step2').textContent = 
+                `过电流保护：I<sub>op</sub> = ${reliabilityFactor} × ${ratedCurrent.toFixed(2)} / ${returnFactor} = ${overcurrentSetting.toFixed(2)} A`;
+            document.getElementById('tr-step3').textContent = 
+                `速断保护：I<sub>inst</sub> = ${reliabilityFactor} × ${shortCircuit} = ${instantaneousSetting.toFixed(2)} A`;
+            document.getElementById('tr-step4').textContent = 
+                `灵敏度校验：K<sub>sen</sub> = ${minShortCircuit} / ${overcurrentSetting.toFixed(2)} = ${sensitivityCoefficient.toFixed(2)}`;
+            
+            // 更新图表
+            updateTRChart(ratedCurrent, overcurrentSetting, instantaneousSetting);
+            
+            // 存储结果
+            calculationResults.transformer = {
+                completed: true,
+                passed: sensitivityPass,
+                ratedPower,
+                ratedVoltage,
+                shortCircuit,
+                minShortCircuit,
+                reliabilityFactor,
+                returnFactor,
+                ratedCurrent,
+                overcurrentSetting,
+                instantaneousSetting,
+                sensitivityCoefficient,
+                sensitivityPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('tr-result').style.display = 'block';
+        });
+        
+        // 更新变压器图表
+        function updateTRChart(ratedCurrent, overcurrentSetting, instantaneousSetting) {
+            const ctx = document.getElementById('tr-chart').getContext('2d');
+            
+            if (trChart) {
+                trChart.destroy();
+            }
+            
+            trChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['额定电流', '过电流保护', '速断保护'],
+                    datasets: [{
+                        label: '电流值 (A)',
+                        data: [ratedCurrent, overcurrentSetting, instantaneousSetting],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '电流 (A)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '变压器整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 电缆选型计算
+        document.getElementById('calculate-cb').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('cb-load-current'),
+                document.getElementById('cb-length'),
+                document.getElementById('cb-voltage'),
+                document.getElementById('cb-power-factor')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const loadCurrent = parseFloat(document.getElementById('cb-load-current').value);
+            const length = parseFloat(document.getElementById('cb-length').value);
+            const voltage = parseFloat(document.getElementById('cb-voltage').value);
+            const powerFactor = parseFloat(document.getElementById('cb-power-factor').value);
+            const conductorMaterial = document.getElementById('cb-conductor-material').value;
+            const installationMethod = document.getElementById('cb-installation-method').value;
+            
+            // 简化计算：根据负荷电流选择电缆截面积
+            let minArea = 0;
+            if (loadCurrent <= 50) minArea = 16;
+            else if (loadCurrent <= 80) minArea = 25;
+            else if (loadCurrent <= 110) minArea = 35;
+            else if (loadCurrent <= 150) minArea = 50;
+            else if (loadCurrent <= 200) minArea = 70;
+            else if (loadCurrent <= 250) minArea = 95;
+            else minArea = 120;
+            
+            // 简化计算：电压损失
+            const resistancePerKm = conductorMaterial === 'cu' ? 0.018 : 0.028; // Ω·mm²/m
+            const voltageDrop = (Math.sqrt(3) * loadCurrent * length * resistancePerKm * powerFactor) / (minArea * voltage) * 100;
+            
+            // 推荐电缆型号
+            const recommendedType = `${minArea}mm² ${conductorMaterial === 'cu' ? '铜' : '铝'}芯电缆`;
+            
+            // 载流量校验
+            const currentCheck = voltageDrop <= 5 ? '满足要求' : '不满足要求';
+            
+            // 显示结果
+            document.getElementById('cb-min-area').textContent = minArea + ' mm²';
+            document.getElementById('cb-recommended-type').textContent = recommendedType;
+            document.getElementById('cb-voltage-drop').textContent = voltageDrop.toFixed(2) + ' %';
+            document.getElementById('cb-current-check').textContent = currentCheck;
+            
+            // 显示计算步骤
+            document.getElementById('cb-step1').textContent = 
+                `按载流量选择电缆截面积：根据负荷电流${loadCurrent}A，选择${minArea}mm²电缆`;
+            document.getElementById('cb-step2').textContent = 
+                `电压损失：ΔU = (√3 × ${loadCurrent} × ${length} × ${resistancePerKm} × ${powerFactor}) / (${minArea} × ${voltage}) × 100% = ${voltageDrop.toFixed(2)}%`;
+            document.getElementById('cb-step3').textContent = 
+                `选择电缆型号：${recommendedType}`;
+            
+            // 更新图表
+            updateCBChart(loadCurrent, minArea, voltageDrop);
+            
+            // 存储结果
+            calculationResults.cable = {
+                completed: true,
+                passed: voltageDrop <= 5,
+                loadCurrent,
+                length,
+                voltage,
+                powerFactor,
+                conductorMaterial,
+                installationMethod,
+                minArea,
+                voltageDrop,
+                recommendedType,
+                currentCheck
+            };
+            
+            updateOverviewStats();
+            document.getElementById('cb-result').style.display = 'block';
+        });
+        
+        // 更新电缆选型图表
+        function updateCBChart(loadCurrent, minArea, voltageDrop) {
+            const ctx = document.getElementById('cb-chart').getContext('2d');
+            
+            if (cbChart) {
+                cbChart.destroy();
+            }
+            
+            cbChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['负荷电流', '最小截面积', '电压损失'],
+                    datasets: [{
+                        label: '数值',
+                        data: [loadCurrent, minArea, voltageDrop],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '数值'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '电缆选型计算结果'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 综保整定计算
+        document.getElementById('calculate-pb').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('pb-rated-current'),
+                document.getElementById('pb-max-load'),
+                document.getElementById('pb-short-circuit'),
+                document.getElementById('pb-min-short-circuit'),
+                document.getElementById('pb-leakage-current')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const ratedCurrent = parseFloat(document.getElementById('pb-rated-current').value);
+            const maxLoad = parseFloat(document.getElementById('pb-max-load').value);
+            const shortCircuit = parseFloat(document.getElementById('pb-short-circuit').value);
+            const minShortCircuit = parseFloat(document.getElementById('pb-min-short-circuit').value);
+            const leakageCurrent = parseFloat(document.getElementById('pb-leakage-current').value);
+            const reliabilityFactor = parseFloat(document.getElementById('pb-reliability-factor').value);
+            
+            // 计算过载保护整定值
+            const overloadSetting = reliabilityFactor * maxLoad;
+            
+            // 计算短路保护整定值
+            const shortCircuitSetting = reliabilityFactor * shortCircuit;
+            
+            // 灵敏度校验
+            const sensitivityCoefficient = minShortCircuit / shortCircuitSetting;
+            const sensitivityPass = sensitivityCoefficient >= 1.5;
+            
+            // 显示结果
+            document.getElementById('pb-overload-result').textContent = overloadSetting.toFixed(2) + ' A';
+            document.getElementById('pb-short-circuit-result').textContent = shortCircuitSetting.toFixed(2) + ' A';
+            document.getElementById('pb-leakage-result').textContent = leakageCurrent + ' mA';
+            
+            // 显示灵敏度校验结果
+            const sensitivityResult = document.getElementById('pb-sensitivity-result');
+            const sensitivityText = document.getElementById('pb-sensitivity-text');
+            
+            if (sensitivityPass) {
+                sensitivityResult.className = 'sensitivity-check pass';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} ≥ 1.5，<strong>校验通过</strong>`;
+            } else {
+                sensitivityResult.className = 'sensitivity-check fail';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} < 1.5，<strong>校验不通过</strong>`;
+            }
+            
+            // 显示计算步骤
+            document.getElementById('pb-step1').textContent = 
+                `过载保护：I<sub>ol</sub> = ${reliabilityFactor} × ${maxLoad} = ${overloadSetting.toFixed(2)} A`;
+            document.getElementById('pb-step2').textContent = 
+                `短路保护：I<sub>sc</sub> = ${reliabilityFactor} × ${shortCircuit} = ${shortCircuitSetting.toFixed(2)} A`;
+            document.getElementById('pb-step3').textContent = 
+                `漏电保护：按规程要求设定为${leakageCurrent} mA`;
+            document.getElementById('pb-step4').textContent = 
+                `灵敏度校验：K<sub>sen</sub> = ${minShortCircuit} / ${shortCircuitSetting.toFixed(2)} = ${sensitivityCoefficient.toFixed(2)}`;
+            
+            // 更新图表
+            updatePBChart(overloadSetting, shortCircuitSetting, leakageCurrent);
+            
+            // 存储结果
+            calculationResults.protection = {
+                completed: true,
+                passed: sensitivityPass,
+                ratedCurrent,
+                maxLoad,
+                shortCircuit,
+                minShortCircuit,
+                leakageCurrent,
+                reliabilityFactor,
+                overloadSetting,
+                shortCircuitSetting,
+                sensitivityCoefficient,
+                sensitivityPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('pb-result').style.display = 'block';
+        });
+        
+        // 更新综保整定图表
+        function updatePBChart(overloadSetting, shortCircuitSetting, leakageCurrent) {
+            const ctx = document.getElementById('pb-chart').getContext('2d');
+            
+            if (pbChart) {
+                pbChart.destroy();
+            }
+            
+            pbChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['过载保护', '短路保护', '漏电保护'],
+                    datasets: [{
+                        label: '整定值',
+                        data: [overloadSetting, shortCircuitSetting, leakageCurrent / 1000], // 漏电保护转换为A
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '整定值'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '综保整定值对比'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 短路电流计算
+        document.getElementById('calculate-sc').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('sc-system-voltage'),
+                document.getElementById('sc-system-capacity'),
+                document.getElementById('sc-transformer-capacity'),
+                document.getElementById('sc-transformer-impedance'),
+                document.getElementById('sc-cable-length'),
+                document.getElementById('sc-cable-section')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const systemVoltage = parseFloat(document.getElementById('sc-system-voltage').value);
+            const systemCapacity = parseFloat(document.getElementById('sc-system-capacity').value);
+            const transformerCapacity = parseFloat(document.getElementById('sc-transformer-capacity').value);
+            const transformerImpedance = parseFloat(document.getElementById('sc-transformer-impedance').value);
+            const cableLength = parseFloat(document.getElementById('sc-cable-length').value);
+            const cableSection = parseFloat(document.getElementById('sc-cable-section').value);
+            
+            // 基准容量和基准电压
+            const baseCapacity = 100; // MVA
+            const baseVoltage = systemVoltage; // kV
+            
+            // 计算系统阻抗标幺值
+            const systemImpedance = baseCapacity / systemCapacity;
+            
+            // 计算变压器阻抗标幺值
+            const transformerImpedancePu = (transformerImpedance * baseCapacity) / (100 * transformerCapacity);
+            
+            // 计算线路阻抗标幺值（简化计算）
+            const lineImpedance = 0.08 * cableLength * baseCapacity / (cableSection * Math.pow(baseVoltage, 2));
+            
+            // 总阻抗标幺值
+            const totalImpedance = systemImpedance + transformerImpedancePu + lineImpedance;
+            
+            // 基准电流
+            const baseCurrent = baseCapacity * 1000 / (Math.sqrt(3) * baseVoltage);
+            
+            // 短路电流
+            const shortCircuitCurrent = baseCurrent / totalImpedance;
+            
+            // 显示结果
+            document.getElementById('sc-system-impedance').textContent = systemImpedance.toFixed(4);
+            document.getElementById('sc-transformer-impedance-result').textContent = transformerImpedancePu.toFixed(4);
+            document.getElementById('sc-line-impedance').textContent = lineImpedance.toFixed(4);
+            document.getElementById('sc-total-impedance').textContent = totalImpedance.toFixed(4);
+            document.getElementById('sc-short-circuit-current').textContent = shortCircuitCurrent.toFixed(2) + ' kA';
+            
+            // 显示计算步骤
+            document.getElementById('sc-step1').textContent = 
+                `系统阻抗：X<sub>*s</sub> = ${baseCapacity} / ${systemCapacity} = ${systemImpedance.toFixed(4)}`;
+            document.getElementById('sc-step2').textContent = 
+                `变压器阻抗：X<sub>*T</sub> = ${transformerImpedance} × ${baseCapacity} / (100 × ${transformerCapacity}) = ${transformerImpedancePu.toFixed(4)}`;
+            document.getElementById('sc-step3').textContent = 
+                `线路阻抗：X<sub>*L</sub> = 0.08 × ${cableLength} × ${baseCapacity} / (${cableSection} × ${baseVoltage}<sup>2</sup>) = ${lineImpedance.toFixed(4)}`;
+            document.getElementById('sc-step4').textContent = 
+                `总阻抗：X<sub>*Σ</sub> = ${systemImpedance.toFixed(4)} + ${transformerImpedancePu.toFixed(4)} + ${lineImpedance.toFixed(4)} = ${totalImpedance.toFixed(4)}`;
+            document.getElementById('sc-step5').textContent = 
+                `短路电流：I<sub>k</sub> = ${baseCurrent.toFixed(2)} / ${totalImpedance.toFixed(4)} = ${shortCircuitCurrent.toFixed(2)} kA`;
+            
+            // 更新图表
+            updateSCChart(systemImpedance, transformerImpedancePu, lineImpedance, shortCircuitCurrent);
+            
+            // 存储结果
+            calculationResults.shortCircuit = {
+                completed: true,
+                passed: true,
+                systemVoltage,
+                systemCapacity,
+                transformerCapacity,
+                transformerImpedance,
+                cableLength,
+                cableSection,
+                systemImpedance,
+                transformerImpedancePu,
+                lineImpedance,
+                totalImpedance,
+                shortCircuitCurrent
+            };
+            
+            updateOverviewStats();
+            document.getElementById('sc-result').style.display = 'block';
+        });
+        
+        // 更新短路电流图表
+        function updateSCChart(systemImpedance, transformerImpedancePu, lineImpedance, shortCircuitCurrent) {
+            const ctx = document.getElementById('sc-chart').getContext('2d');
+            
+            if (scChart) {
+                scChart.destroy();
+            }
+            
+            scChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['系统阻抗', '变压器阻抗', '线路阻抗', '短路电流'],
+                    datasets: [{
+                        label: '数值',
+                        data: [systemImpedance, transformerImpedancePu, lineImpedance, shortCircuitCurrent],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '数值'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '短路电流计算结果'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 灵敏度校验
+        document.getElementById('calculate-sen').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('sen-setting-value'),
+                document.getElementById('sen-fault-current')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const settingValue = parseFloat(document.getElementById('sen-setting-value').value);
+            const faultCurrent = parseFloat(document.getElementById('sen-fault-current').value);
+            const protectionType = document.getElementById('sen-protection-type').value;
+            const requiredSensitivity = parseFloat(document.getElementById('sen-required-sensitivity').value);
+            
+            // 根据保护类型设置要求灵敏度系数
+            let reqSensitivity = 1.5; // 默认过电流保护
+            if (protectionType === 'instantaneous') reqSensitivity = 2.0;
+            else if (protectionType === 'earth') reqSensitivity = 1.5;
+            
+            document.getElementById('sen-required-sensitivity').value = reqSensitivity;
+            
+            // 计算灵敏度系数
+            const sensitivityCoefficient = faultCurrent / settingValue;
+            const sensitivityPass = sensitivityCoefficient >= reqSensitivity;
+            
+            // 显示结果
+            document.getElementById('sen-sensitivity-coefficient').textContent = sensitivityCoefficient.toFixed(2);
+            document.getElementById('sen-required-coefficient').textContent = reqSensitivity.toFixed(1);
+            
+            // 显示灵敏度校验结果
+            const sensitivityResult = document.getElementById('sen-sensitivity-result');
+            const sensitivityText = document.getElementById('sen-sensitivity-text');
+            
+            if (sensitivityPass) {
+                sensitivityResult.className = 'sensitivity-check pass';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} ≥ ${reqSensitivity}，<strong>校验通过</strong>`;
+            } else {
+                sensitivityResult.className = 'sensitivity-check fail';
+                sensitivityText.innerHTML = `灵敏度系数 K<sub>sen</sub> = ${sensitivityCoefficient.toFixed(2)} < ${reqSensitivity}，<strong>校验不通过</strong>`;
+            }
+            
+            // 显示计算步骤
+            document.getElementById('sen-step1').textContent = 
+                `灵敏度系数：K<sub>sen</sub> = ${faultCurrent} / ${settingValue} = ${sensitivityCoefficient.toFixed(2)}`;
+            document.getElementById('sen-step2').textContent = 
+                `校验：${sensitivityCoefficient.toFixed(2)} ${sensitivityPass ? '≥' : '<'} ${reqSensitivity}`;
+            
+            // 更新图表
+            updateSENChart(settingValue, faultCurrent, sensitivityCoefficient);
+            
+            // 存储结果
+            calculationResults.sensitivity = {
+                completed: true,
+                passed: sensitivityPass,
+                protectionType,
+                settingValue,
+                faultCurrent,
+                requiredSensitivity: reqSensitivity,
+                sensitivityCoefficient,
+                sensitivityPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('sen-result').style.display = 'block';
+        });
+        
+        // 更新灵敏度校验图表
+        function updateSENChart(settingValue, faultCurrent, sensitivityCoefficient) {
+            const ctx = document.getElementById('sen-chart').getContext('2d');
+            
+            if (senChart) {
+                senChart.destroy();
+            }
+            
+            senChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['保护整定值', '故障电流', '灵敏度系数'],
+                    datasets: [{
+                        label: '数值',
+                        data: [settingValue, faultCurrent, sensitivityCoefficient],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '数值'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '灵敏度校验结果'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 保护配合分析
+        document.getElementById('calculate-coord').addEventListener('click', function() {
+            // 验证输入
+            const inputs = [
+                document.getElementById('coord-upstream-setting'),
+                document.getElementById('coord-downstream-setting'),
+                document.getElementById('coord-upstream-time'),
+                document.getElementById('coord-downstream-time'),
+                document.getElementById('coord-fault-current')
+            ];
+            
+            let valid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, 0, 100000)) {
+                    valid = false;
+                }
+            });
+            
+            if (!valid) return;
+            
+            const upstreamSetting = parseFloat(document.getElementById('coord-upstream-setting').value);
+            const downstreamSetting = parseFloat(document.getElementById('coord-downstream-setting').value);
+            const upstreamTime = parseFloat(document.getElementById('coord-upstream-time').value);
+            const downstreamTime = parseFloat(document.getElementById('coord-downstream-time').value);
+            const faultCurrent = parseFloat(document.getElementById('coord-fault-current').value);
+            const timeStep = parseFloat(document.getElementById('coord-time-step').value);
+            
+            // 计算电流配合系数
+            const currentRatio = upstreamSetting / downstreamSetting;
+            const currentPass = currentRatio >= 1.2;
+            
+            // 计算时间配合系数
+            const timeRatio = upstreamTime - downstreamTime;
+            const timePass = timeRatio >= timeStep;
+            
+            // 综合判断
+            const coordinationPass = currentPass && timePass;
+            
+            // 显示结果
+            document.getElementById('coord-current-ratio').textContent = currentRatio.toFixed(2);
+            document.getElementById('coord-time-ratio').textContent = timeRatio.toFixed(2) + ' s';
+            
+            // 显示配合分析结果
+            const coordinationResult = document.getElementById('coord-coordination-result');
+            const coordinationText = document.getElementById('coord-coordination-text');
+            
+            if (coordinationPass) {
+                coordinationResult.className = 'sensitivity-check pass';
+                coordinationText.innerHTML = `电流配合系数 K<sub>I</sub> = ${currentRatio.toFixed(2)} ≥ 1.2，时间配合系数 K<sub>t</sub> = ${timeRatio.toFixed(2)} ≥ ${timeStep}，<strong>配合良好</strong>`;
+            } else {
+                coordinationResult.className = 'sensitivity-check fail';
+                let failReason = '';
+                if (!currentPass && !timePass) {
+                    failReason = '电流和时间配合均不满足要求';
+                } else if (!currentPass) {
+                    failReason = '电流配合不满足要求';
+                } else {
+                    failReason = '时间配合不满足要求';
+                }
+                coordinationText.innerHTML = `电流配合系数 K<sub>I</sub> = ${currentRatio.toFixed(2)}，时间配合系数 K<sub>t</sub> = ${timeRatio.toFixed(2)}，<strong>${failReason}</strong>`;
+            }
+            
+            // 显示分析步骤
+            document.getElementById('coord-step1').textContent = 
+                `电流配合：K<sub>I</sub> = ${upstreamSetting} / ${downstreamSetting} = ${currentRatio.toFixed(2)} ${currentPass ? '≥' : '<'} 1.2`;
+            document.getElementById('coord-step2').textContent = 
+                `时间配合：K<sub>t</sub> = ${upstreamTime} - ${downstreamTime} = ${timeRatio.toFixed(2)} ${timePass ? '≥' : '<'} ${timeStep}`;
+            document.getElementById('coord-step3').textContent = 
+                `综合分析：${coordinationPass ? '电流和时间配合均满足要求' : '配合存在问题，需要调整'}`;
+            
+            // 更新图表
+            updateCOORDChart(upstreamSetting, downstreamSetting, upstreamTime, downstreamTime);
+            
+            // 存储结果
+            calculationResults.coordination = {
+                completed: true,
+                passed: coordinationPass,
+                upstreamSetting,
+                downstreamSetting,
+                upstreamTime,
+                downstreamTime,
+                faultCurrent,
+                timeStep,
+                currentRatio,
+                timeRatio,
+                currentPass,
+                timePass,
+                coordinationPass
+            };
+            
+            updateOverviewStats();
+            document.getElementById('coord-result').style.display = 'block';
+        });
+        
+        // 更新保护配合分析图表
+        function updateCOORDChart(upstreamSetting, downstreamSetting, upstreamTime, downstreamTime) {
+            const ctx = document.getElementById('coord-chart').getContext('2d');
+            
+            if (coordChart) {
+                coordChart.destroy();
+            }
+            
+            coordChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['上级整定值', '下级整定值', '上级时间', '下级时间'],
+                    datasets: [{
+                        label: '数值',
+                        data: [upstreamSetting, downstreamSetting, upstreamTime, downstreamTime],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(241, 196, 15)',
+                            'rgb(231, 76, 60)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '数值'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '保护配合分析结果'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 导出全部结果
+        document.getElementById('export-all-results').addEventListener('click', function() {
+            // 创建Excel工作簿
+            const wb = XLSX.utils.book_new();
+            
+            // 创建数据工作表
+            const data = [['模块', '状态', '校验结果', '关键参数', '计算结果']];
+            
+            for (const key in calculationResults) {
+                if (calculationResults[key].completed) {
+                    let moduleName = '';
+                    let status = calculationResults[key].passed ? '通过' : '需调整';
+                    let keyParams = '';
+                    let results = '';
+                    
+                    switch(key) {
+                        case 'highVoltage':
+                            moduleName = '高爆开关整定';
+                            keyParams = `额定电流: ${calculationResults[key].ratedCurrent}A, 最大负荷: ${calculationResults[key].maxLoad}A`;
+                            results = `过电流保护: ${calculationResults[key].overcurrentSetting.toFixed(2)}A, 速断保护: ${calculationResults[key].instantaneousSetting.toFixed(2)}A`;
+                            break;
+                        case 'feeder':
+                            moduleName = '馈电开关整定';
+                            keyParams = `额定电流: ${calculationResults[key].ratedCurrent}A, 最大启动: ${calculationResults[key].maxStart}A`;
+                            results = `过载保护: ${calculationResults[key].overloadSetting.toFixed(2)}A, 短路保护: ${calculationResults[key].shortCircuitSetting.toFixed(2)}A`;
+                            break;
+                        case 'starter':
+                            moduleName = '启动器整定';
+                            keyParams = `电动机电流: ${calculationResults[key].motorCurrent}A, 启动电流: ${calculationResults[key].startCurrent}A`;
+                            results = `过载保护: ${calculationResults[key].overloadSetting.toFixed(2)}A, 短路保护: ${calculationResults[key].shortCircuitSetting.toFixed(2)}A`;
+                            break;
+                        case 'motor':
+                            moduleName = '电动机整定';
+                            keyParams = `额定功率: ${calculationResults[key].ratedPower}kW, 额定电压: ${calculationResults[key].ratedVoltage}V`;
+                            results = `额定电流: ${calculationResults[key].ratedCurrent.toFixed(2)}A, 启动电流: ${calculationResults[key].startCurrent.toFixed(2)}A`;
+                            break;
+                        case 'transformer':
+                            moduleName = '变压器整定';
+                            keyParams = `额定容量: ${calculationResults[key].ratedPower}kVA, 额定电压: ${calculationResults[key].ratedVoltage}V`;
+                            results = `过电流保护: ${calculationResults[key].overcurrentSetting.toFixed(2)}A, 速断保护: ${calculationResults[key].instantaneousSetting.toFixed(2)}A`;
+                            break;
+                        case 'cable':
+                            moduleName = '电缆选型';
+                            keyParams = `负荷电流: ${calculationResults[key].loadCurrent}A, 电缆长度: ${calculationResults[key].length}m`;
+                            results = `最小截面积: ${calculationResults[key].minArea}mm², 电压损失: ${calculationResults[key].voltageDrop.toFixed(2)}%`;
+                            break;
+                        case 'protection':
+                            moduleName = '综保整定';
+                            keyParams = `额定电流: ${calculationResults[key].ratedCurrent}A, 最大负荷: ${calculationResults[key].maxLoad}A`;
+                            results = `过载保护: ${calculationResults[key].overloadSetting.toFixed(2)}A, 短路保护: ${calculationResults[key].shortCircuitSetting.toFixed(2)}A`;
+                            break;
+                        case 'shortCircuit':
+                            moduleName = '短路电流';
+                            keyParams = `系统电压: ${calculationResults[key].systemVoltage}kV, 变压器容量: ${calculationResults[key].transformerCapacity}kVA`;
+                            results = `短路电流: ${calculationResults[key].shortCircuitCurrent.toFixed(2)}kA`;
+                            break;
+                        case 'sensitivity':
+                            moduleName = '灵敏度校验';
+                            keyParams = `保护整定: ${calculationResults[key].settingValue}A, 故障电流: ${calculationResults[key].faultCurrent}A`;
+                            results = `灵敏度系数: ${calculationResults[key].sensitivityCoefficient.toFixed(2)}`;
+                            break;
+                        case 'coordination':
+                            moduleName = '保护配合';
+                            keyParams = `上级整定: ${calculationResults[key].upstreamSetting}A, 下级整定: ${calculationResults[key].downstreamSetting}A`;
+                            results = `电流配合: ${calculationResults[key].currentRatio.toFixed(2)}, 时间配合: ${calculationResults[key].timeRatio.toFixed(2)}s`;
+                            break;
+                    }
+                    
+                    data.push([moduleName, '已完成', status, keyParams, results]);
+                } else {
+                    let moduleName = '';
+                    switch(key) {
+                        case 'highVoltage': moduleName = '高爆开关整定'; break;
+                        case 'feeder': moduleName = '馈电开关整定'; break;
+                        case 'starter': moduleName = '启动器整定'; break;
+                        case 'motor': moduleName = '电动机整定'; break;
+                        case 'transformer': moduleName = '变压器整定'; break;
+                        case 'cable': moduleName = '电缆选型'; break;
+                        case 'protection': moduleName = '综保整定'; break;
+                        case 'shortCircuit': moduleName = '短路电流'; break;
+                        case 'sensitivity': moduleName = '灵敏度校验'; break;
+                        case 'coordination': moduleName = '保护配合'; break;
+                    }
+                    data.push([moduleName, '未完成', '-', '-', '-']);
+                }
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "计算结果");
+            
+            // 导出Excel文件
+            XLSX.writeFile(wb, "煤矿供电整定计算结果.xlsx");
+        });
+        
+        // 重置所有计算
+        document.getElementById('reset-all').addEventListener('click', function() {
+            if (confirm('确定要重置所有计算吗？这将清除所有输入和计算结果。')) {
+                // 重置计算结果对象
+                for (const key in calculationResults) {
+                    calculationResults[key] = {completed: false, passed: false};
+                }
+                
+                // 重置所有输入字段
+                document.querySelectorAll('input[type="number"]').forEach(input => {
+                    input.value = '';
+                    input.classList.remove('input-error');
+                });
+                
+                // 重置所有错误消息
+                document.querySelectorAll('.error-message').forEach(msg => {
+                    msg.textContent = '';
+                });
+                
+                // 重置所有下拉菜单到默认值
+                document.querySelectorAll('select').forEach(select => {
+                    select.selectedIndex = 0;
+                });
+                
+                // 隐藏所有结果卡片
+                document.querySelectorAll('.result-card').forEach(card => {
+                    card.style.display = 'none';
+                });
+                
+                // 更新概览统计
+                updateOverviewStats();
+                
+                alert('所有计算已重置！');
+            }
+        });
+        
+        // 清除历史记录
+        document.getElementById('clear-history').addEventListener('click', function() {
+            if (confirm('确定要清除所有历史记录吗？此操作不可撤销。')) {
+                calculationHistory = [];
+                updateCalculationHistory();
+                saveToLocalStorage();
+                alert('历史记录已清除！');
+            }
+        });
+        
+        // 初始化概览统计和图表
+        function init() {
+            loadFromLocalStorage();
+            updateOverviewStats();
+            updateCalculationHistory();
+            updateDocumentsGrid();
+            
+            // 绑定所有按钮事件
+            bindAllButtonEvents();
+        }
+        
+        // 绑定所有按钮事件
+        function bindAllButtonEvents() {
+            // 为模板文档按钮添加事件
+            document.querySelectorAll('#templates-grid .document-actions button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const card = this.closest('.document-card');
+                    const docName = card.getAttribute('data-name');
+                    const action = this.classList.contains('btn-success') ? 'preview' : 'download';
+                    
+                    if (action === 'preview') {
+                        alert(`预览模板文档: ${docName}`);
+                    } else {
+                        alert(`下载模板文档: ${docName}`);
+                    }
+                });
+            });
+            
+            // 为其他模块的按钮添加事件（简化实现）
+            document.querySelectorAll('button[id^="export-"]').forEach(button => {
+                if (!button.id.includes('hv') && !button.id.includes('fd') && 
+                    !button.id.includes('st') && !button.id.includes('mt') &&
+                    !button.id.includes('tr') && !button.id.includes('cb') &&
+                    !button.id.includes('pb') && !button.id.includes('sc') &&
+                    !button.id.includes('sen') && !button.id.includes('coord')) {
+                    button.addEventListener('click', function() {
+                        alert('此功能正在开发中，敬请期待！');
+                    });
+                }
+            });
+            
+            document.querySelectorAll('button[id^="save-"]').forEach(button => {
+                if (!button.id.includes('hv') && !button.id.includes('fd') && 
+                    !button.id.includes('st') && !button.id.includes('mt') &&
+                    !button.id.includes('tr') && !button.id.includes('cb') &&
+                    !button.id.includes('pb') && !button.id.includes('sc') &&
+                    !button.id.includes('sen') && !button.id.includes('coord')) {
+                    button.addEventListener('click', function() {
+                        alert('此功能正在开发中，敬请期待！');
+                    });
+                }
+            });
+            
+            document.querySelectorAll('button[id^="calculate-"]').forEach(button => {
+                if (!button.id.includes('hv') && !button.id.includes('fd') && 
+                    !button.id.includes('st') && !button.id.includes('mt') &&
+                    !button.id.includes('tr') && !button.id.includes('cb') &&
+                    !button.id.includes('pb') && !button.id.includes('sc') &&
+                    !button.id.includes('sen') && !button.id.includes('coord')) {
+                    button.addEventListener('click', function() {
+                        alert('此功能正在开发中，敬请期待！');
+                    });
+                }
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
 </html>
